@@ -51,6 +51,7 @@ namespace Zad4Playfair
             string keyword = GetTextFromFile(keywordFileName);
             string explicitText = GetTextFromFile(explicitTextFileName);
             List<string> encodedPairs;
+            List<string> decodedPairs;
 
             keyword = RemoveRepetitions(keyword);
             explicitText = SeparateRepetitions(explicitText);
@@ -58,14 +59,11 @@ namespace Zad4Playfair
             explicitTextPairs = extractPairsFrom(explicitText);
             table = CreateTableFrom(keyword);
             encodedPairs = Encode(explicitTextPairs);
-
-            explicitTextPairs.ForEach(x => Console.Write(x + " "));
-
-            Console.WriteLine();
-            PrintTable();
-            Console.WriteLine();
+            decodedPairs = Decode(encodedPairs);
 
             encodedPairs.ForEach(x => Console.Write(x + " "));
+            Console.WriteLine();
+            decodedPairs.ForEach(x => Console.Write(x + " "));
 
             Console.ReadLine();
         }
@@ -79,21 +77,65 @@ namespace Zad4Playfair
                 string encodedPair = String.Empty;
                 Coords firstSign = GetSignCoords(pair[0]);
                 Coords secondSign = GetSignCoords(pair[1]);
+                int newIndex;
 
                 if (firstSign.X.Equals(secondSign.X))
                 {
-                    encodedPair += table[(firstSign.Y + 1) % table.GetLength(1), firstSign.X];
-                    encodedPair += table[(secondSign.Y + 1) % table.GetLength(1), secondSign.X];
+                    encodedPair += table[(firstSign.Y + 1) % table.GetLength(0), firstSign.X];
+                    encodedPair += table[(secondSign.Y + 1) % table.GetLength(0), secondSign.X];
                 }
                 else if (firstSign.Y.Equals(secondSign.Y))
                 {
-                    encodedPair += table[(firstSign.X + 1) % table.GetLength(0), firstSign.Y];
-                    encodedPair += table[(secondSign.X + 1) % table.GetLength(0), secondSign.Y];
+                    encodedPair += table[firstSign.Y, (firstSign.X + 1) % table.GetLength(1)];
+                    encodedPair += table[secondSign.Y, (secondSign.X + 1) % table.GetLength(1)];
                 }
                 else
                 {
-                    encodedPair += table[secondSign.X, firstSign.Y];
-                    encodedPair += table[firstSign.X, secondSign.Y];
+                    encodedPair += table[firstSign.Y, secondSign.X];
+                    encodedPair += table[secondSign.Y, firstSign.X];
+                }
+
+                encodedPairs.Add(encodedPair);
+            }
+
+            return encodedPairs;
+        }
+
+        private static List<string> Decode(List<string> pairs)
+        {
+            List<string> encodedPairs = new List<string>();
+
+            foreach (var pair in pairs)
+            {
+                string encodedPair = String.Empty;
+                Coords firstSign = GetSignCoords(pair[0]);
+                Coords secondSign = GetSignCoords(pair[1]);
+                int newIndex;
+
+                if (firstSign.X.Equals(secondSign.X))
+                {
+                    newIndex = firstSign.Y.Equals(0) ? table.GetLength(0) - 1 : firstSign.Y - 1;
+
+                    encodedPair += table[newIndex, firstSign.X];
+
+                    newIndex = secondSign.Y.Equals(0) ? table.GetLength(0) - 1 : secondSign.Y - 1;
+
+                    encodedPair += table[newIndex, secondSign.X];
+                }
+                else if (firstSign.Y.Equals(secondSign.Y))
+                {
+                    newIndex = firstSign.X.Equals(0) ? table.GetLength(1) - 1 : firstSign.X - 1;
+
+                    encodedPair += table[firstSign.Y, newIndex];
+
+                    newIndex = secondSign.X.Equals(0) ? table.GetLength(1) - 1 : secondSign.X - 1;
+
+                    encodedPair += table[secondSign.Y, newIndex];
+                }
+                else
+                {
+                    encodedPair += table[firstSign.Y, secondSign.X];
+                    encodedPair += table[secondSign.Y, firstSign.X];
                 }
 
                 encodedPairs.Add(encodedPair);
@@ -104,15 +146,15 @@ namespace Zad4Playfair
 
         private static Coords GetSignCoords(char sign)
         {
+            if (sign.Equals('j'))
+            {
+                sign = 'i';
+            }
+
             for (int i = 0; i < table.GetLength(0); i++)
             {
                 for (int j = 0; j < table.GetLength(1); j++)
                 {
-                    if (sign.Equals('j'))
-                    {
-                        sign = 'i';
-                    }
-
                     if (table[i,j].Equals(sign))
                     {
                         return new Coords() { X = j, Y = i };
@@ -127,7 +169,7 @@ namespace Zad4Playfair
         {
             if (File.Exists(filename))
             {
-                return File.ReadAllText(filename);
+                return File.ReadAllText(filename).ToLower();
             }
 
             return String.Empty;
