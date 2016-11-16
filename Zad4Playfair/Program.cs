@@ -77,7 +77,6 @@ namespace Zad4Playfair
                 string encodedPair = String.Empty;
                 Coords firstSign = GetSignCoords(pair[0]);
                 Coords secondSign = GetSignCoords(pair[1]);
-                int newIndex;
 
                 if (firstSign.X.Equals(secondSign.X))
                 {
